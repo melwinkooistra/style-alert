@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
+import './App.css'
 
 const CLOTHING_TYPES = [
   'T-shirt', 'Shirt', 'Sweater', 'Hoodie', 'Jacket', 'Coat',
@@ -29,6 +30,7 @@ function App() {
   const [discount, setDiscount] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     fetchBrands()
@@ -53,12 +55,15 @@ function App() {
       size,
       min_discount: parseInt(discount),
     })
-    if (error) console.log('Error:', error.message)
-    setBrandName('')
-    setClothingType('')
-    setSize('')
-    setDiscount('')
-    await fetchBrands()
+    if (!error) {
+      setBrandName('')
+      setClothingType('')
+      setSize('')
+      setDiscount('')
+      setSuccess(true)
+      setTimeout(() => setSuccess(false), 3000)
+      await fetchBrands()
+    }
     setLoading(false)
   }
 
@@ -66,83 +71,126 @@ function App() {
   const isFormValid = brandName && clothingType && size && discount && email
 
   return (
-    <div style={{ maxWidth: '480px', margin: '40px auto', fontFamily: 'sans-serif', padding: '0 20px' }}>
-      <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>Style Alert</h1>
-      <p style={{ color: '#666', marginBottom: '32px' }}>Get notified when your favourite items go on sale.</p>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>Your email</label>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '8px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>Add a watchlist item</label>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-          <input
-            type="text"
-            placeholder="Brand name"
-            value={brandName}
-            onChange={e => setBrandName(e.target.value)}
-            style={{ flex: 2, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-          />
-          <input
-            type="number"
-            placeholder="Min % off"
-            value={discount}
-            onChange={e => setDiscount(e.target.value)}
-            style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
-          />
+    <div className="app">
+      <header className="header">
+        <div className="header-inner">
+          <div className="brand">
+            <span className="brand-icon">◈</span>
+            <span className="brand-name">Style Alert</span>
+          </div>
+          <p className="brand-tagline">Sale notifications for what you actually want</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <select
-            value={clothingType}
-            onChange={e => setClothingType(e.target.value)}
-            style={{ flex: 2, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff' }}
-          >
-            <option value="">Clothing type</option>
-            {CLOTHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select
-            value={size}
-            onChange={e => setSize(e.target.value)}
-            disabled={!clothingType}
-            style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #ccc', background: '#fff', opacity: clothingType ? 1 : 0.5 }}
-          >
-            <option value="">Size</option>
-            {sizeOptions.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <button
-            onClick={addBrand}
-            disabled={loading || !isFormValid}
-            style={{ padding: '10px 16px', borderRadius: '6px', background: isFormValid ? '#000' : '#999', color: '#fff', border: 'none', cursor: isFormValid ? 'pointer' : 'default' }}
-          >
-            {loading ? '...' : 'Add'}
-          </button>
-        </div>
-      </div>
+      </header>
 
-      {brands.length > 0 && (
-        <div style={{ marginTop: '24px' }}>
-          <h2 style={{ fontSize: '16px', marginBottom: '12px' }}>Your watchlist</h2>
-          {brands.map((b) => (
-            <div key={b.id} style={{ padding: '12px', background: '#f5f5f5', borderRadius: '6px', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontWeight: 'bold' }}>{b.brand_name}</span>
-                <span style={{ color: '#666' }}>{b.min_discount}% off</span>
+      <main className="main">
+        <section className="card">
+          <div className="card-header">
+            <h2 className="card-title">Set a sale alert</h2>
+            <p className="card-subtitle">We'll notify you the moment a match drops in price.</p>
+          </div>
+
+          <div className="form">
+            <div className="field">
+              <label className="label" htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                className="input"
+                placeholder="you@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="field">
+              <label className="label" htmlFor="brand">Brand</label>
+              <input
+                id="brand"
+                type="text"
+                className="input"
+                placeholder="e.g. Nike, Zara, Arket"
+                value={brandName}
+                onChange={e => setBrandName(e.target.value)}
+              />
+            </div>
+
+            <div className="field-row">
+              <div className="field">
+                <label className="label" htmlFor="type">Type</label>
+                <select
+                  id="type"
+                  className="input select"
+                  value={clothingType}
+                  onChange={e => setClothingType(e.target.value)}
+                >
+                  <option value="">Select type</option>
+                  {CLOTHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
               </div>
-              <div style={{ color: '#888', fontSize: '14px', marginTop: '4px' }}>
-                {b.clothing_type} — Size {b.size}
+
+              <div className="field">
+                <label className="label" htmlFor="size">Size</label>
+                <select
+                  id="size"
+                  className={`input select${!clothingType ? ' disabled' : ''}`}
+                  value={size}
+                  onChange={e => setSize(e.target.value)}
+                  disabled={!clothingType}
+                >
+                  <option value="">Select size</option>
+                  {sizeOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="field">
+              <label className="label" htmlFor="discount">Minimum discount</label>
+              <div className="input-affix-wrap">
+                <input
+                  id="discount"
+                  type="number"
+                  className="input input-affix"
+                  placeholder="20"
+                  min="1"
+                  max="99"
+                  value={discount}
+                  onChange={e => setDiscount(e.target.value)}
+                />
+                <span className="affix">% off</span>
+              </div>
+            </div>
+
+            <button
+              className={`btn-primary${!isFormValid || loading ? ' btn-disabled' : ''}${success ? ' btn-success' : ''}`}
+              onClick={addBrand}
+              disabled={loading || !isFormValid}
+            >
+              {success ? '✓ Alert added' : loading ? 'Adding…' : 'Add alert'}
+            </button>
+          </div>
+        </section>
+
+        {brands.length > 0 && (
+          <section className="watchlist">
+            <h3 className="watchlist-title">Your active alerts</h3>
+            <ul className="watchlist-list">
+              {brands.map((b) => (
+                <li key={b.id} className="watchlist-item">
+                  <div className="watchlist-main">
+                    <span className="watchlist-brand">{b.brand_name}</span>
+                    <span className="watchlist-details">{b.clothing_type} · Size {b.size}</span>
+                  </div>
+                  <span className="watchlist-badge">{b.min_discount}% off</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </main>
+
+      <footer className="footer">
+        <p>Style Alert · Netherlands · Deals straight to your inbox</p>
+      </footer>
     </div>
   )
 }
